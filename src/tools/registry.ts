@@ -10,6 +10,7 @@ import {
 
 import { searchCaseLaw, type SearchCaseLawInput } from './search-case-law.js';
 import { getJudgment, type GetJudgmentInput } from './get-judgment.js';
+import { findJudgmentsForProvision, type FindInput } from './find-judgments-for-provision.js';
 import { SaosError } from '../saos/client.js';
 
 const COURT_TYPES = ['COMMON', 'SUPREME', 'ADMINISTRATIVE', 'CONSTITUTIONAL_TRIBUNAL', 'NATIONAL_APPEAL_CHAMBER'];
@@ -49,6 +50,26 @@ export const TOOLS: Tool[] = [
       required: ['id'],
     },
   },
+  {
+    name: 'find_judgments_for_provision',
+    description:
+      'Find Polish judgments that cite a given statutory provision. Provide either document_id ' +
+      '(pl-du-YYYY-NNN, e.g. pl-du-1997-553 for the Criminal Code) or journal_year + journal_entry, ' +
+      'optionally an article (e.g. "art. 267") and title_hint to sharpen the text search. ' +
+      'Each result has confirmed_reference=true when the full judgment actually cites the provision ' +
+      '(verified via referenced regulations), false when it is only a text match. Live from SAOS; not legal advice.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        document_id: { type: 'string', description: 'ELI id pl-du-YYYY-NNN.' },
+        journal_year: { type: 'number', description: 'Dziennik Ustaw year.' },
+        journal_entry: { type: 'number', description: 'Dziennik Ustaw entry (pozycja).' },
+        article: { type: 'string', description: 'Optional article, e.g. "art. 267".' },
+        title_hint: { type: 'string', description: 'Optional act title to sharpen search, e.g. "Kodeks karny".' },
+        limit: { type: 'number', description: 'Max results, 1-10 (default 10).' },
+      },
+    },
+  },
 ];
 
 function errorMessage(err: unknown): string {
@@ -77,6 +98,9 @@ export function registerTools(server: Server): void {
           break;
         case 'get_judgment':
           result = await getJudgment(args as unknown as GetJudgmentInput);
+          break;
+        case 'find_judgments_for_provision':
+          result = await findJudgmentsForProvision(args as unknown as FindInput);
           break;
         default:
           return {
