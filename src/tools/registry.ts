@@ -90,7 +90,7 @@ export const TOOLS: Tool[] = [
   },
 ];
 
-function errorMessage(err: unknown): string {
+export function errorMessage(err: unknown): string {
   if (err instanceof SaosError) {
     switch (err.code) {
       case 'timeout': return 'SAOS timed out. Try again.';
