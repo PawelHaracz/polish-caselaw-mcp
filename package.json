@@ -5,6 +5,7 @@
   "description": "Polish court case law via MCP — live search and retrieval of judgments from the SAOS API (saos.org.pl)",
   "author": "Ansvar Systems <hello@ansvar.eu>",
   "license": "Apache-2.0",
+  "engines": { "node": ">=20" },
   "type": "module",
   "main": "dist/index.js",
   "bin": { "polish-caselaw-mcp": "dist/index.js" },
