@@ -79,13 +79,13 @@ export const TOOLS: Tool[] = [
     inputSchema: { type: 'object', properties: {} },
   },
   {
-    name: 'about',
-    description: 'Server metadata, provenance, and freshness (live SAOS). Call to understand coverage and basis before relying on results.',
+    name: 'caselaw_about',
+    description: 'Case-law server metadata, provenance, and freshness (live SAOS). Call to understand coverage and basis before relying on results.',
     inputSchema: { type: 'object', properties: {} },
   },
   {
-    name: 'list_sources',
-    description: 'Provenance and legal-basis metadata for the case-law source (SAOS). Call FIRST to understand what this server covers.',
+    name: 'caselaw_list_sources',
+    description: 'Provenance and legal-basis metadata for the case-law source (SAOS). Call FIRST to understand what this case-law server covers.',
     inputSchema: { type: 'object', properties: {} },
   },
 ];
@@ -123,10 +123,10 @@ export function registerTools(server: Server): void {
         case 'list_courts':
           result = listCourts();
           break;
-        case 'about':
+        case 'caselaw_about':
           result = getAbout();
           break;
-        case 'list_sources':
+        case 'caselaw_list_sources':
           result = listSources();
           break;
         default:

@@ -10,7 +10,7 @@ from ISAP); this server has **no local database** — it queries SAOS per reques
 - `get_judgment` — full judgment by SAOS id (text, judges, referenced regulations as ELI ids)
 - `find_judgments_for_provision` — judgments citing a statute provision (pl-du-YYYY-NNN), verified against referenced regulations
 - `list_courts` — court types for filtering
-- `about` / `list_sources` — provenance and legal basis
+- `caselaw_about` / `caselaw_list_sources` — provenance and legal basis (prefixed to avoid name clashes with sibling MCP servers in a gateway)
 
 ## Run
 
