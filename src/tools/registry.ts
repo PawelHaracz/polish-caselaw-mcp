@@ -9,6 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { searchCaseLaw, type SearchCaseLawInput } from './search-case-law.js';
+import { getJudgment, type GetJudgmentInput } from './get-judgment.js';
 import { SaosError } from '../saos/client.js';
 
 const COURT_TYPES = ['COMMON', 'SUPREME', 'ADMINISTRATIVE', 'CONSTITUTIONAL_TRIBUNAL', 'NATIONAL_APPEAL_CHAMBER'];
@@ -32,6 +33,20 @@ export const TOOLS: Tool[] = [
         limit: { type: 'number', description: 'Max results, 1-100 (default 10).' },
       },
       required: ['query'],
+    },
+  },
+  {
+    name: 'get_judgment',
+    description:
+      'Fetch the full text and metadata of a single Polish court judgment by its SAOS id ' +
+      '(use the id returned by search_case_law). Includes full text, judges, decision, summary, ' +
+      'legal bases, and referenced_regulations mapped to ELI ids (pl-du-YYYY-NNN). Live from SAOS; not legal advice.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: ['string', 'number'], description: 'SAOS judgment id.' },
+      },
+      required: ['id'],
     },
   },
 ];
@@ -59,6 +74,9 @@ export function registerTools(server: Server): void {
       switch (name) {
         case 'search_case_law':
           result = await searchCaseLaw(args as unknown as SearchCaseLawInput);
+          break;
+        case 'get_judgment':
+          result = await getJudgment(args as unknown as GetJudgmentInput);
           break;
         default:
           return {
