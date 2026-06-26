@@ -1,0 +1,29 @@
+schema_version: "1.0"
+mcp_name: "Polish Case Law MCP"
+jurisdiction: "PL"
+mode: "live"
+
+sources:
+  - name: "SAOS — System Analizy Orzeczeń Sądowych"
+    authority: "saos.org.pl (open judgment aggregator); judgments originate from Polish courts"
+    official_portal: "https://www.saos.org.pl"
+    api: "https://www.saos.org.pl/api"
+    retrieval_method: "LIVE_REST_API"
+    update_frequency: "live (fetched per request)"
+    license_or_terms:
+      type: "Official materials (materiały urzędowe)"
+      statute_ref: "Art. 4 pkt 2 ustawy o prawie autorskim; K.p.c. Art. 9; K.p.k. Art. 100"
+      summary: >-
+        Court decisions are NOT covered by the statutory-PD carve-out for
+        normative acts (Art. 4 pkt 1). They are treated as official materials
+        with a separate publication basis. This MCP reads judgments live from
+        SAOS and does not redistribute a dataset.
+    coverage:
+      scope: "Polish court judgments: Supreme Court, common, administrative, Constitutional Tribunal, National Appeal Chamber"
+      limitations: "Coverage and freshness depend on SAOS; full text retrieved per judgment; rate limits apply"
+    languages:
+      - "pl"
+
+disclaimer: >-
+  Research tool, not legal advice. Authoritative judgment texts are maintained
+  by the issuing courts. Verify before relying on any result.

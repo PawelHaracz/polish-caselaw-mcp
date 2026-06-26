@@ -1,0 +1,31 @@
+{
+  "name": "@ansvar/polish-caselaw-mcp",
+  "version": "1.0.0",
+  "mcpName": "eu.ansvar/polish-caselaw-mcp",
+  "description": "Polish court case law via MCP — live search and retrieval of judgments from the SAOS API (saos.org.pl)",
+  "author": "Ansvar Systems <hello@ansvar.eu>",
+  "license": "Apache-2.0",
+  "engines": { "node": ">=20" },
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": { "polish-caselaw-mcp": "dist/index.js" },
+  "files": ["dist", "server.json"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --import tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.0"
+  }
+}

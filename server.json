@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "eu.ansvar/polish-caselaw-mcp",
+  "description": "Polish court case law via MCP — live search and retrieval of judgments from the SAOS API",
+  "repository": { "url": "https://github.com/Ansvar-Systems/polish-caselaw-mcp", "source": "github" },
+  "homepage": "https://ansvar.eu",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@ansvar/polish-caselaw-mcp",
+      "version": "1.0.0",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}

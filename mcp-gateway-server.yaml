@@ -1,0 +1,18 @@
+name: polish-caselaw-mcp
+image: polish-caselaw-mcp:local
+type: server
+title: Polish Case Law
+description: >-
+  Polish court case law (orzecznictwo) served live from the SAOS API —
+  search judgments, fetch full texts, and find judgments citing a statutory
+  provision.
+metadata:
+  category: legal
+  tags:
+    - case-law
+    - orzecznictwo
+    - saos
+    - legal
+    - poland
+  license: Apache-2.0
+  owner: local
