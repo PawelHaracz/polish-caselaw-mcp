@@ -7,10 +7,13 @@ from ISAP); this server has **no local database** — it queries SAOS per reques
 ## Tools
 
 - `search_case_law` — search judgments (query, court type, dates, sort, limit)
-- `get_judgment` — full judgment by SAOS id (text, judges, referenced regulations as ELI ids)
+- `get_judgment` — full judgment by SAOS id (text, judges, referenced regulations as ELI ids + article refs)
 - `find_judgments_for_provision` — judgments citing a statute provision (pl-du-YYYY-NNN), verified against referenced regulations
+- `check_constitutional_status` — Constitutional Tribunal (TK) judgments citing a provision (does NOT assert the provision was struck down — read the operative part)
 - `list_courts` — court types for filtering
 - `caselaw_about` / `caselaw_list_sources` — provenance and legal basis (prefixed to avoid name clashes with sibling MCP servers in a gateway)
+
+All tools return `{ results, _metadata }` (ToolResponse), mirroring polish-law-mcp, so a client can compose both servers. `get_judgment` exposes `referenced_regulations[].articles_refs` in polish-law's `artNNNparN` scheme for cross-server linking.
 
 ## Run
 

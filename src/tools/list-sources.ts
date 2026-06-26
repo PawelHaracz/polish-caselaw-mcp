@@ -1,4 +1,5 @@
 /** list_sources — provenance metadata for the case-law source. */
+import { wrap, type ToolResponse } from '../utils/metadata.js';
 export interface SourceInfo {
   name: string;
   authority: string;
@@ -14,8 +15,8 @@ export interface SourcesResult {
   disclaimer: string;
 }
 
-export function listSources(): SourcesResult {
-  return {
+export function listSources(): ToolResponse<SourcesResult> {
+  return wrap({
     sources: [
       {
         name: 'SAOS — System Analizy Orzeczeń Sądowych',
@@ -31,5 +32,5 @@ export function listSources(): SourcesResult {
     ],
     mode: 'live (SAOS REST API, fetched at request time)',
     disclaimer: 'Research tool, not legal advice. Authoritative judgment texts are maintained by the issuing courts.',
-  };
+  });
 }
