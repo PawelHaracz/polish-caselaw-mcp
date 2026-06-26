@@ -24,6 +24,7 @@ describe('checkConstitutionalStatus', () => {
       { search: search as never, fetchById: fetchById as never },
     );
     expect(out._metadata.jurisdiction).toBe('PL');
+    expect(out._metadata.note).toContain('does NOT mean the provision was struck down');
     expect(out.results.target_eli_id).toBe('pl-du-1964-296');
     expect(out.results.tribunal_judgments).toHaveLength(1);
     expect(out.results.tribunal_judgments[0].confirmed_reference).toBe(true);
