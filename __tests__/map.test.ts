@@ -72,6 +72,9 @@ describe('mapJudgment', () => {
     expect(out.judges).toContain('Anna Kowacz-Braun');
     expect(out.full_text.length).toBeGreaterThan(1000);
     expect(out.referenced_regulations[0].eli_id).toBe('pl-du-1964-296');
+    expect(out.referenced_regulations[0].articles_refs).toEqual([
+      'art370', 'art373', 'art61', 'art62', 'art87', 'art87par1', 'art87par2',
+    ]);
     expect(out.saos_url).toBe('https://www.saos.org.pl/judgments/2');
   });
 });

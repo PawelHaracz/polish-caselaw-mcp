@@ -4,6 +4,7 @@
 import { searchJudgments } from '../saos/client.js';
 import { mapSearchResponse, type CaseLawSummary } from '../saos/map.js';
 import { DEFAULT_LIMIT, MAX_LIMIT } from '../constants.js';
+import { wrap, type ToolResponse } from '../utils/metadata.js';
 
 export interface SearchCaseLawInput {
   query: string;
@@ -28,7 +29,7 @@ const SORT_MAP: Record<string, string> = {
 export async function searchCaseLaw(
   input: SearchCaseLawInput,
   deps: { search?: typeof searchJudgments } = {},
-): Promise<SearchCaseLawResult> {
+): Promise<ToolResponse<SearchCaseLawResult>> {
   const search = deps.search ?? searchJudgments;
   if (!input.query || input.query.trim().length === 0) {
     throw new Error('query is required');
@@ -47,5 +48,5 @@ export async function searchCaseLaw(
     judgmentDateTo: input.date_to,
   });
 
-  return mapSearchResponse(resp);
+  return wrap(mapSearchResponse(resp), { query_strategy: `sort=${input.sort ?? 'relevance'}` });
 }

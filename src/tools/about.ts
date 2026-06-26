@@ -1,5 +1,6 @@
 /** about — server metadata and provenance. */
 import { SERVER_LABEL, SERVER_VERSION } from '../constants.js';
+import { wrap, type ToolResponse } from '../utils/metadata.js';
 
 export interface AboutResult {
   name: string;
@@ -11,8 +12,8 @@ export interface AboutResult {
   disclaimer: string;
 }
 
-export function getAbout(): AboutResult {
-  return {
+export function getAbout(): ToolResponse<AboutResult> {
+  return wrap({
     name: SERVER_LABEL,
     version: SERVER_VERSION,
     jurisdiction: 'PL',
@@ -22,5 +23,5 @@ export function getAbout(): AboutResult {
     ],
     freshness: { mode: 'live', note: 'Results are fetched from SAOS at request time; there is no local snapshot.' },
     disclaimer: 'This is a research tool, not legal advice. Court decisions are aggregated by SAOS; verify against official court portals.',
-  };
+  });
 }

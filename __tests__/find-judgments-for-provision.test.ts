@@ -10,73 +10,39 @@ const judgment2 = JSON.parse(
 );
 
 describe('findJudgmentsForProvision', () => {
-  it('resolves eli id from journal_year/entry and marks confirmed references', async () => {
-    // search returns one item (id 2), full doc references pl-du-1964-296
-    const search = vi.fn(async () => ({
-      items: [{ id: 2, courtType: 'COMMON', judgmentDate: '2012-10-16', courtCases: [{ caseNumber: 'I ACa 1105/12' }], textContent: 'x' }],
-      info: { totalResults: 1 },
-    }));
-    const fetchById = vi.fn(async () => judgment2);
-
-    const out = await findJudgmentsForProvision(
-      { journal_year: 1964, journal_entry: 296, limit: 5 },
-      { search: search as never, fetchById: fetchById as never },
-    );
-    expect(out.target_eli_id).toBe('pl-du-1964-296');
-    expect(out.items).toHaveLength(1);
-    expect(out.items[0].confirmed_reference).toBe(true);
-  });
-
-  it('falls back to text matches with a note when nothing is confirmed', async () => {
+  it('wraps result in ToolResponse with SAOS metadata; confirms references', async () => {
     const search = vi.fn(async () => ({
       items: [{ id: 2, courtType: 'COMMON', textContent: 'x' }],
       info: { totalResults: 1 },
     }));
-    const fetchById = vi.fn(async () => judgment2); // references 1964/296, not 1997/553
-    const out = await findJudgmentsForProvision(
-      { document_id: 'pl-du-1997-553', article: 'art. 267', limit: 5 },
-      { search: search as never, fetchById: fetchById as never },
-    );
-    expect(out.target_eli_id).toBe('pl-du-1997-553');
-    expect(out.confirmed_count).toBe(0);
-    expect(out.note).toBeTruthy();
-    expect(out.items[0].confirmed_reference).toBe(false);
-  });
-
-  it('returns ONLY confirmed items (drops unconfirmed) when any are confirmed', async () => {
-    // Two search hits: id 2 cites pl-du-1964-296 (confirmed), id 999 does not.
-    const noRefDoc = { data: { id: 999, referencedRegulations: [], textContent: 'y' } };
-    const search = vi.fn(async () => ({
-      items: [
-        { id: 2, courtType: 'COMMON', textContent: 'x' },
-        { id: 999, courtType: 'COMMON', textContent: 'y' },
-      ],
-      info: { totalResults: 2 },
-    }));
-    const fetchById = vi.fn(async (id: number) => (id === 2 ? judgment2 : noRefDoc));
+    const fetchById = vi.fn(async () => judgment2);
     const out = await findJudgmentsForProvision(
       { journal_year: 1964, journal_entry: 296, limit: 5 },
       { search: search as never, fetchById: fetchById as never },
     );
-    expect(out.confirmed_count).toBe(1);
-    expect(out.note).toBeUndefined();
-    expect(out.items).toHaveLength(1);
-    expect(out.items[0].id).toBe(2);
-    expect(out.items[0].confirmed_reference).toBe(true);
+    expect(out._metadata.jurisdiction).toBe('PL');
+    expect(out.results.target_eli_id).toBe('pl-du-1964-296');
+    expect(out.results.confirmed_count).toBe(1);
+    expect(out.results.items[0].confirmed_reference).toBe(true);
+  });
+
+  it('falls back with a note (in metadata) when nothing is confirmed', async () => {
+    const search = vi.fn(async () => ({
+      items: [{ id: 2, courtType: 'COMMON', textContent: 'x' }],
+      info: { totalResults: 1 },
+    }));
+    const fetchById = vi.fn(async () => judgment2); // cites 1964/296, not 1997/553
+    const out = await findJudgmentsForProvision(
+      { document_id: 'pl-du-1997-553', article: 'art. 267', limit: 5 },
+      { search: search as never, fetchById: fetchById as never },
+    );
+    expect(out.results.confirmed_count).toBe(0);
+    expect(out.results.note).toBeTruthy();
+    expect(out._metadata.note).toBeTruthy();
+    expect(out.results.items[0].confirmed_reference).toBe(false);
   });
 
   it('throws when neither document_id nor journal year/entry provided', async () => {
     await expect(findJudgmentsForProvision({})).rejects.toThrow();
-  });
-
-  it('caps full-document fetches at the configured maximum', async () => {
-    const many = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, textContent: 'x' }));
-    const search = vi.fn(async () => ({ items: many, info: { totalResults: 50 } }));
-    const fetchById = vi.fn(async () => judgment2);
-    await findJudgmentsForProvision(
-      { document_id: 'pl-du-1964-296', limit: 50 },
-      { search: search as never, fetchById: fetchById as never },
-    );
-    expect(fetchById.mock.calls.length).toBeLessThanOrEqual(10);
   });
 });

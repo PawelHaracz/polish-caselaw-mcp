@@ -22,8 +22,8 @@ describe('searchCaseLaw', () => {
       { query: 'ochrona danych', sort: 'date', limit: 5, court_type: 'SUPREME' },
       { search: search as never },
     );
-    expect(out.total_results).toBe(128349);
-    expect(out.items[0].snippet.includes('<em>')).toBe(false);
+    expect(out.results.total_results).toBe(128349);
+    expect(out.results.items[0].snippet.includes('<em>')).toBe(false);
   });
 
   it('clamps limit to MAX_LIMIT and defaults sort to relevance', async () => {

@@ -1,4 +1,5 @@
 import { SAOS_BASE_URL } from '../constants.js';
+import { parseArticleRefs } from './provision-ref.js';
 import type {
   SaosSearchItem,
   SaosSearchResponse,
@@ -24,6 +25,7 @@ export interface ReferencedRegulationOut {
   journal_entry: number | null;
   title: string | null;
   text: string | null;
+  articles_refs: string[];
 }
 
 export interface JudgmentDetail {
@@ -119,6 +121,7 @@ export function mapJudgment(resp: SaosJudgmentResponse): JudgmentDetail {
       journal_entry: r.journalEntry ?? null,
       title: r.journalTitle ?? null,
       text: r.text ?? null,
+      articles_refs: parseArticleRefs(r.text ?? ''),
     })),
     referenced_court_cases: (d.referencedCourtCases ?? [])
       .map((c) => c.caseNumber)

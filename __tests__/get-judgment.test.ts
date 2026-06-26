@@ -16,9 +16,9 @@ describe('getJudgment', () => {
       return fixture;
     });
     const out = await getJudgment({ id: 2 }, { fetchById: fetchById as never });
-    expect(out.id).toBe(2);
-    expect(out.referenced_regulations[0].eli_id).toBe('pl-du-1964-296');
-    expect(out.full_text.length).toBeGreaterThan(1000);
+    expect(out.results.id).toBe(2);
+    expect(out.results.referenced_regulations[0].eli_id).toBe('pl-du-1964-296');
+    expect(out.results.full_text.length).toBeGreaterThan(1000);
   });
 
   it('throws when id is missing', async () => {
