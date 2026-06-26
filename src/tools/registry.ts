@@ -45,7 +45,7 @@ export const TOOLS: Tool[] = [
     description:
       'Fetch the full text and metadata of a single Polish court judgment by its SAOS id ' +
       '(use the id returned by search_case_law). Includes full text, judges, decision, summary, ' +
-      'legal bases, and referenced_regulations mapped to ELI ids (pl-du-YYYY-NNN). Live from SAOS; not legal advice.',
+      'legal bases, and referenced_regulations mapped to ELI ids (pl-du-YYYY-NNN) plus articles_refs in the artNNNparN scheme. Live from SAOS; not legal advice.',
     inputSchema: {
       type: 'object',
       properties: {

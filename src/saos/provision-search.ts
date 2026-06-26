@@ -98,6 +98,7 @@ export async function findJudgmentsCitingProvision(
     return {
       target_eli_id: targetEliId,
       query_used: queryUsed,
+      // Count of ALL confirmed matches found (may exceed items shown when limit < confirmed.length).
       confirmed_count: confirmed.length,
       items: confirmed.slice(0, limit),
     };
