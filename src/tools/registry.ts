@@ -11,6 +11,9 @@ import {
 import { searchCaseLaw, type SearchCaseLawInput } from './search-case-law.js';
 import { getJudgment, type GetJudgmentInput } from './get-judgment.js';
 import { findJudgmentsForProvision, type FindInput } from './find-judgments-for-provision.js';
+import { listCourts } from './list-courts.js';
+import { getAbout } from './about.js';
+import { listSources } from './list-sources.js';
 import { SaosError } from '../saos/client.js';
 
 const COURT_TYPES = ['COMMON', 'SUPREME', 'ADMINISTRATIVE', 'CONSTITUTIONAL_TRIBUNAL', 'NATIONAL_APPEAL_CHAMBER'];
@@ -70,6 +73,21 @@ export const TOOLS: Tool[] = [
       },
     },
   },
+  {
+    name: 'list_courts',
+    description: 'List the Polish court types available for the court_type filter in search_case_law.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'about',
+    description: 'Server metadata, provenance, and freshness (live SAOS). Call to understand coverage and basis before relying on results.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'list_sources',
+    description: 'Provenance and legal-basis metadata for the case-law source (SAOS). Call FIRST to understand what this server covers.',
+    inputSchema: { type: 'object', properties: {} },
+  },
 ];
 
 function errorMessage(err: unknown): string {
@@ -101,6 +119,15 @@ export function registerTools(server: Server): void {
           break;
         case 'find_judgments_for_provision':
           result = await findJudgmentsForProvision(args as unknown as FindInput);
+          break;
+        case 'list_courts':
+          result = listCourts();
+          break;
+        case 'about':
+          result = getAbout();
+          break;
+        case 'list_sources':
+          result = listSources();
           break;
         default:
           return {
