@@ -24,6 +24,8 @@ export interface FindResultItem extends CaseLawSummary {
 export interface FindResult {
   query_used: string;
   target_eli_id: string;
+  confirmed_count: number;
+  note?: string;
   items: FindResultItem[];
 }
 
@@ -60,12 +62,13 @@ export async function findJudgmentsForProvision(
 
   const limit = Math.min(Math.max(1, input.limit ?? 10), MAX_PROVISION_FETCHES);
 
+  // Use SAOS's own relevance ordering for the text search (no sortingField):
+  // sorting by citation count surfaced old, famous-but-irrelevant judgments
+  // (e.g. pre-2018 cases for a 2018 act). Relevance keeps results on-topic.
   const searchResp = await search({
     all: queryUsed,
     pageSize: MAX_PROVISION_FETCHES,
     pageNumber: 0,
-    sortingField: 'REFERENCING_JUDGMENTS_COUNT',
-    sortingDirection: 'DESC',
   });
   const summaries = mapSearchResponse(searchResp).items.slice(0, MAX_PROVISION_FETCHES);
 
@@ -84,7 +87,26 @@ export async function findJudgmentsForProvision(
     if (FETCH_THROTTLE_MS > 0) await sleep(FETCH_THROTTLE_MS);
   }
 
-  // Confirmed references first, then the rest; respect the caller's limit.
-  items.sort((a, b) => Number(b.confirmed_reference) - Number(a.confirmed_reference));
-  return { query_used: queryUsed, target_eli_id: targetEliId, items: items.slice(0, limit) };
+  const confirmed = items.filter((i) => i.confirmed_reference);
+  // If any judgment actually cites the provision, return ONLY those — padding
+  // with unconfirmed text matches just adds noise. If none are confirmed, fall
+  // back to the text matches but say so, so the caller knows they're unverified.
+  if (confirmed.length > 0) {
+    return {
+      query_used: queryUsed,
+      target_eli_id: targetEliId,
+      confirmed_count: confirmed.length,
+      items: confirmed.slice(0, limit),
+    };
+  }
+  return {
+    query_used: queryUsed,
+    target_eli_id: targetEliId,
+    confirmed_count: 0,
+    note:
+      'No judgment in the search results was verified to cite this provision. ' +
+      'The items below are text matches only (confirmed_reference=false). ' +
+      'Try adding an article and/or a title_hint to sharpen the search.',
+    items: items.slice(0, limit),
+  };
 }

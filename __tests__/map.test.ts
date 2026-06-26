@@ -21,6 +21,18 @@ describe('cleanSnippet', () => {
     expect(cleanSnippet('<p>x</p>')).toBe('x');
     expect(cleanSnippet('plain')).toBe('plain');
   });
+
+  it('merges adjacent <em> highlights into a single >>> <<< region', () => {
+    // SAOS returns many separate <em> tags; naive replace produced
+    // unreadable runs like ">>>dane>>osobowe<<<". Adjacent (whitespace-only
+    // separated) highlights should collapse into one region.
+    expect(cleanSnippet('<em>dane</em><em>osobowe</em>')).toBe('>>>dane osobowe<<<');
+    expect(cleanSnippet('x <em>dane</em> <em>osobowe</em> y')).toBe('x >>>dane osobowe<<< y');
+  });
+
+  it('keeps separate highlights separated by real text distinct', () => {
+    expect(cleanSnippet('<em>a</em> real text <em>b</em>')).toBe('>>>a<<< real text >>>b<<<');
+  });
 });
 
 describe('regulationToEliId', () => {

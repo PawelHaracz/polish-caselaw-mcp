@@ -27,7 +27,7 @@ describe('findJudgmentsForProvision', () => {
     expect(out.items[0].confirmed_reference).toBe(true);
   });
 
-  it('marks confirmed_reference false when full doc does not cite the provision', async () => {
+  it('falls back to text matches with a note when nothing is confirmed', async () => {
     const search = vi.fn(async () => ({
       items: [{ id: 2, courtType: 'COMMON', textContent: 'x' }],
       info: { totalResults: 1 },
@@ -38,7 +38,31 @@ describe('findJudgmentsForProvision', () => {
       { search: search as never, fetchById: fetchById as never },
     );
     expect(out.target_eli_id).toBe('pl-du-1997-553');
+    expect(out.confirmed_count).toBe(0);
+    expect(out.note).toBeTruthy();
     expect(out.items[0].confirmed_reference).toBe(false);
+  });
+
+  it('returns ONLY confirmed items (drops unconfirmed) when any are confirmed', async () => {
+    // Two search hits: id 2 cites pl-du-1964-296 (confirmed), id 999 does not.
+    const noRefDoc = { data: { id: 999, referencedRegulations: [], textContent: 'y' } };
+    const search = vi.fn(async () => ({
+      items: [
+        { id: 2, courtType: 'COMMON', textContent: 'x' },
+        { id: 999, courtType: 'COMMON', textContent: 'y' },
+      ],
+      info: { totalResults: 2 },
+    }));
+    const fetchById = vi.fn(async (id: number) => (id === 2 ? judgment2 : noRefDoc));
+    const out = await findJudgmentsForProvision(
+      { journal_year: 1964, journal_entry: 296, limit: 5 },
+      { search: search as never, fetchById: fetchById as never },
+    );
+    expect(out.confirmed_count).toBe(1);
+    expect(out.note).toBeUndefined();
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].id).toBe(2);
+    expect(out.items[0].confirmed_reference).toBe(true);
   });
 
   it('throws when neither document_id nor journal year/entry provided', async () => {

@@ -46,11 +46,22 @@ export interface JudgmentDetail {
 
 export function cleanSnippet(text: string): string {
   if (!text) return '';
-  return text
-    .replace(/<em>/g, '>>>')
-    .replace(/<\/em>/g, '<<<')
-    .replace(/<[^>]+>/g, '')
-    .trim();
+  // SAOS wraps each matched term in its own <em>…</em>, often many in a row.
+  // A naive <em>->>>>/</em>-><<< replace produces unreadable runs like
+  // ">>>dane>>osobowe<<<" and mis-pairs adjacent tags. First collapse runs of
+  // adjacent highlights (separated only by whitespace) into one region, then
+  // convert the surviving <em> pair to markers and strip every other tag.
+  const s = text
+    // Merge adjacent highlights ("</em><ws><em>") into one region with a single
+    // space, so distinct matched words don't run together.
+    .replace(/<\/em>\s*<em>/gi, ' ')
+    // Strip every non-<em> tag FIRST, while real angle brackets are still tags —
+    // doing this after inserting >>>/<<< markers would let the tag-stripper eat
+    // the markers (e.g. "<<< text >>>" matches /<[^>]+>/).
+    .replace(/<(?!\/?em>)[^>]+>/gi, '')
+    .replace(/<em>/gi, '>>>')
+    .replace(/<\/em>/gi, '<<<');
+  return s.trim();
 }
 
 export function regulationToEliId(r: SaosReferencedRegulation): string | null {
