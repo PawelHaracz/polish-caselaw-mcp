@@ -14,6 +14,7 @@ import { findJudgmentsForProvision, type FindInput } from './find-judgments-for-
 import { listCourts } from './list-courts.js';
 import { getAbout } from './about.js';
 import { listSources } from './list-sources.js';
+import { checkConstitutionalStatus, type ConstitutionalInput } from './check-constitutional-status.js';
 import { SaosError } from '../saos/client.js';
 
 const COURT_TYPES = ['COMMON', 'SUPREME', 'ADMINISTRATIVE', 'CONSTITUTIONAL_TRIBUNAL', 'NATIONAL_APPEAL_CHAMBER'];
@@ -74,6 +75,26 @@ export const TOOLS: Tool[] = [
     },
   },
   {
+    name: 'check_constitutional_status',
+    description:
+      'Find Polish Constitutional Tribunal (TK) judgments that cite a given statutory ' +
+      'provision. Provide document_id (pl-du-YYYY-NNN) or journal_year + journal_entry, ' +
+      'optionally an article and title_hint. Returns TK judgments with confirmed_reference ' +
+      '(verified via referenced regulations). IMPORTANT: a citing TK judgment does NOT by ' +
+      'itself mean the provision was struck down — read the operative part. Live from SAOS; not legal advice.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        document_id: { type: 'string', description: 'ELI id pl-du-YYYY-NNN.' },
+        journal_year: { type: 'number', description: 'Dziennik Ustaw year.' },
+        journal_entry: { type: 'number', description: 'Dziennik Ustaw entry (pozycja).' },
+        article: { type: 'string', description: 'Optional article, e.g. "art. 267".' },
+        title_hint: { type: 'string', description: 'Optional act title to sharpen search.' },
+        limit: { type: 'number', description: 'Max results, 1-10 (default 10).' },
+      },
+    },
+  },
+  {
     name: 'list_courts',
     description: 'List the Polish court types available for the court_type filter in search_case_law.',
     inputSchema: { type: 'object', properties: {} },
@@ -119,6 +140,9 @@ export function registerTools(server: Server): void {
           break;
         case 'find_judgments_for_provision':
           result = await findJudgmentsForProvision(args as unknown as FindInput);
+          break;
+        case 'check_constitutional_status':
+          result = await checkConstitutionalStatus(args as unknown as ConstitutionalInput);
           break;
         case 'list_courts':
           result = listCourts();
