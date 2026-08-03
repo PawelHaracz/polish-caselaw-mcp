@@ -30,28 +30,79 @@ npm run build
 npm start            # stdio MCP server
 ```
 
-## Docker
+## Install
 
-Pull the published image:
-
-```bash
-docker pull pawelharacz/polish-caselaw-mcp:latest
-```
-
-Or build locally:
-
-```bash
-docker build -t polish-caselaw-mcp:local .
-```
+The server speaks MCP over stdio. Pick whichever setup matches your client.
 
 ### Docker MCP Gateway
+
+`mcp-gateway-server.yaml` already points at the published image, so no build is
+needed:
 
 ```bash
 docker mcp profile server add default --server file://"$PWD/mcp-gateway-server.yaml"
 ```
 
-Requires network access (SAOS). The gateway `--block-network` flag disables it;
-tools then return a clear network-error message.
+To run your own build instead, set `image:` in that file to a local tag and
+build it first:
+
+```bash
+docker build -t polish-caselaw-mcp:local .
+```
+
+The gateway's `--block-network` flag cuts SAOS off; tools then return a clear
+network error rather than hanging.
+
+### Standalone — Docker
+
+Any MCP client that launches a stdio command can run the image directly.
+`--rm -i` matters: the server talks over stdin/stdout and should not outlive
+the client.
+
+```json
+{
+  "mcpServers": {
+    "polish-caselaw": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "ghcr.io/pawelharacz/polish-caselaw-mcp:latest"]
+    }
+  }
+}
+```
+
+Pass configuration through with `-e`:
+
+```json
+"args": ["run", "--rm", "-i", "-e", "SAOS_TIMEOUT_MS=60000",
+         "ghcr.io/pawelharacz/polish-caselaw-mcp:latest"]
+```
+
+### Standalone — Node
+
+Without Docker, point the client at the built entrypoint:
+
+```json
+{
+  "mcpServers": {
+    "polish-caselaw": {
+      "command": "node",
+      "args": ["/absolute/path/to/polish-caselaw-mcp/dist/index.js"],
+      "env": { "SAOS_TIMEOUT_MS": "60000" }
+    }
+  }
+}
+```
+
+Run `npm install && npm run build` first — `dist/` is not committed.
+
+### Claude Code
+
+```bash
+claude mcp add polish-caselaw -- docker run --rm -i ghcr.io/pawelharacz/polish-caselaw-mcp:latest
+```
+
+Verify with `/mcp`, then call `caselaw_about` — it returns provenance without
+touching SAOS, so it confirms the server is wired up even if the API is slow.
 
 ## Configuration
 

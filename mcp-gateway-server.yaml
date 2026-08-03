@@ -1,5 +1,5 @@
 name: polish-caselaw-mcp
-image: polish-caselaw-mcp:local
+image: ghcr.io/pawelharacz/polish-caselaw-mcp:latest
 type: server
 title: Polish Case Law
 description: >-
