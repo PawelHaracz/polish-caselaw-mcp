@@ -1,4 +1,4 @@
-import { SAOS_BASE_URL, HTTP_TIMEOUT_MS } from '../constants.js';
+import { SAOS_BASE_URL, HTTP_TIMEOUT_MS, RETRY_BACKOFF_MS } from '../constants.js';
 import type { SaosSearchResponse, SaosJudgmentResponse } from './types.js';
 
 export type SaosErrorCode = 'timeout' | 'network' | 'http' | 'notfound' | 'ratelimited';
@@ -38,13 +38,17 @@ async function fetchJson<T>(path: string, fetchFn: FetchFn): Promise<T> {
     }
   };
 
+  const backoff = () => new Promise((resolve) => setTimeout(resolve, RETRY_BACKOFF_MS));
+
   let res: Response;
   try {
     res = await attempt();
   } catch (err) {
-    // One retry on network/abort error.
+    // One retry on network/abort error, after a short backoff so a slow
+    // upstream is not hit again immediately.
     if (err instanceof Error && err.name === 'AbortError') {
       try {
+        await backoff();
         res = await attempt();
       } catch (err2) {
         if (err2 instanceof Error && err2.name === 'AbortError') {
@@ -54,6 +58,7 @@ async function fetchJson<T>(path: string, fetchFn: FetchFn): Promise<T> {
       }
     } else {
       try {
+        await backoff();
         res = await attempt();
       } catch {
         throw new SaosError('network', `SAOS network error: ${url}`);
