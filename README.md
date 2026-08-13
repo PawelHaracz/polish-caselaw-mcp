@@ -30,7 +30,7 @@ npm run build
 npm start            # stdio MCP server
 ```
 
-### HTTP (domyślny transport w obrazie Dockera)
+### HTTP (obraz publikowany pod tagiem -http)
 
 ```bash
 npm run build
@@ -46,7 +46,8 @@ Wariant HTTP publikowany jest pod tagiem `:latest-http` — używa go agent
 
 ## Install
 
-The server speaks MCP over stdio. Pick whichever setup matches your client.
+This section covers stdio clients (see `## Run` above for the HTTP variant).
+Pick whichever setup matches your client.
 
 ### Docker MCP Gateway
 
