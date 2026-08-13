@@ -61,7 +61,7 @@ To run your own build instead, set `image:` in that file to a local tag and
 build it first:
 
 ```bash
-docker build -t polish-caselaw-mcp:local .
+docker build -f Dockerfile.stdio -t polish-caselaw-mcp:local .
 ```
 
 The gateway's `--block-network` flag cuts SAOS off; tools then return a clear
