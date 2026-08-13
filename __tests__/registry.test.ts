@@ -12,44 +12,44 @@ import { errorMessage, registerTools } from '../src/tools/registry.js';
 describe('errorMessage', () => {
   it('maps timeout to the correct message', () => {
     const err = new SaosError('timeout', 'timed out');
-    expect(errorMessage(err)).toBe('SAOS timed out. Try again.');
+    expect(errorMessage(err)).toBe('[timeout] SAOS timed out. Try again.');
   });
 
   it('maps network to the correct message', () => {
     const err = new SaosError('network', 'network down');
     expect(errorMessage(err)).toBe(
-      'SAOS unavailable (network error). The gateway may have network access disabled.',
+      '[network] SAOS unavailable (network error). The gateway may have network access disabled.',
     );
   });
 
   it('maps ratelimited to the correct message', () => {
     const err = new SaosError('ratelimited', 'too many requests', 429);
-    expect(errorMessage(err)).toBe('SAOS is rate-limited. Try again shortly.');
+    expect(errorMessage(err)).toBe('[ratelimited] SAOS is rate-limited. Try again shortly.');
   });
 
   it('maps notfound to the correct message', () => {
     const err = new SaosError('notfound', 'not found', 404);
-    expect(errorMessage(err)).toBe('Not found.');
+    expect(errorMessage(err)).toBe('[notfound] Not found.');
   });
 
   it('maps http (default) with status 500 to the correct message', () => {
     const err = new SaosError('http', 'server error', 500);
-    expect(errorMessage(err)).toBe('SAOS error (HTTP 500).');
+    expect(errorMessage(err)).toBe('[http] SAOS error (HTTP 500).');
   });
 
   it('maps http with undefined status to ? placeholder', () => {
     const err = new SaosError('http', 'server error');
-    expect(errorMessage(err)).toBe('SAOS error (HTTP ?).');
+    expect(errorMessage(err)).toBe('[http] SAOS error (HTTP ?).');
   });
 
   it('passes through a plain Error message', () => {
     const err = new Error('something went wrong');
-    expect(errorMessage(err)).toBe('something went wrong');
+    expect(errorMessage(err)).toBe('[unknown] something went wrong');
   });
 
   it('stringifies non-Error values', () => {
-    expect(errorMessage('raw string')).toBe('raw string');
-    expect(errorMessage(42)).toBe('42');
+    expect(errorMessage('raw string')).toBe('[unknown] raw string');
+    expect(errorMessage(42)).toBe('[unknown] 42');
   });
 });
 
@@ -85,5 +85,31 @@ describe('registry unknown-tool fallback (integration)', () => {
     expect(item.type).toBe('text');
     expect(item.text).toContain('Unknown tool');
     expect(item.text).toContain('does_not_exist');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Kod błędu dla agenta — komunikaty są dla człowieka, prefiks dla maszyny
+// ---------------------------------------------------------------------------
+
+describe('errorMessage — maszynowy kod błędu', () => {
+  it('poprzedza komunikat kodem, po którym agent rozpozna błąd przejściowy', () => {
+    expect(errorMessage(new SaosError('timeout', 'timed out'))).toMatch(/^\[timeout\]/);
+    expect(errorMessage(new SaosError('ratelimited', 'too many', 429))).toMatch(/^\[ratelimited\]/);
+    expect(errorMessage(new SaosError('network', 'down'))).toMatch(/^\[network\]/);
+  });
+
+  it('poprzedza komunikat kodem przy błędzie trwałym, żeby agent nie ponawiał', () => {
+    expect(errorMessage(new SaosError('notfound', 'not found', 404))).toMatch(/^\[notfound\]/);
+    expect(errorMessage(new SaosError('http', 'server error', 500))).toMatch(/^\[http\]/);
+  });
+
+  it('zachowuje czytelny komunikat po kodzie', () => {
+    expect(errorMessage(new SaosError('timeout', 'timed out')))
+      .toBe('[timeout] SAOS timed out. Try again.');
+  });
+
+  it('błędy spoza SAOS dostają kod unknown', () => {
+    expect(errorMessage(new Error('coś innego'))).toBe('[unknown] coś innego');
   });
 });
