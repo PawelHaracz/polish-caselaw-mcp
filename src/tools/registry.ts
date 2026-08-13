@@ -111,17 +111,27 @@ export const TOOLS: Tool[] = [
   },
 ];
 
+/**
+ * Komunikat błędu dla agenta.
+ *
+ * Prefiks [code] jest maszynowy: po nim agent decyduje, czy ponawiać (timeout,
+ * ratelimited, network) czy odpuścić (notfound, http). Reszta komunikatu jest
+ * dla człowieka i zostaje bez zmian.
+ */
 export function errorMessage(err: unknown): string {
   if (err instanceof SaosError) {
-    switch (err.code) {
-      case 'timeout': return 'SAOS timed out. Try again.';
-      case 'network': return 'SAOS unavailable (network error). The gateway may have network access disabled.';
-      case 'ratelimited': return 'SAOS is rate-limited. Try again shortly.';
-      case 'notfound': return 'Not found.';
-      default: return `SAOS error (HTTP ${err.status ?? '?'}).`;
-    }
+    const human = ((): string => {
+      switch (err.code) {
+        case 'timeout': return 'SAOS timed out. Try again.';
+        case 'network': return 'SAOS unavailable (network error). The gateway may have network access disabled.';
+        case 'ratelimited': return 'SAOS is rate-limited. Try again shortly.';
+        case 'notfound': return 'Not found.';
+        default: return `SAOS error (HTTP ${err.status ?? '?'}).`;
+      }
+    })();
+    return `[${err.code}] ${human}`;
   }
-  return err instanceof Error ? err.message : String(err);
+  return `[unknown] ${err instanceof Error ? err.message : String(err)}`;
 }
 
 export function registerTools(server: Server): void {

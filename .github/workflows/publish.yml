@@ -50,12 +50,45 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=edge,enable=${{ github.ref_type != 'tag' }}
 
-      - uses: docker/build-push-action@v6
+      # Te same wersje co wyżej, ale z sufiksem -http.
+      # latest=false, bo domyślne latest=auto wygenerowałoby goły tag `latest`
+      # mimo suffix=-http (suffix działa na tagi semver, nie na string latest).
+      # Bez tego push HTTP nadpisałby obraz stdio, którego używa gateway.
+      - id: metaHttp
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: |
+            latest=false
+          tags: |
+            type=semver,pattern={{version}},suffix=-http
+            type=semver,pattern={{major}}.{{minor}},suffix=-http
+            type=raw,value=latest-http,enable=${{ github.ref_type == 'tag' }}
+            type=raw,value=edge-http,enable=${{ github.ref_type != 'tag' }}
+
+      # Obraz stdio -> :latest i tagi semver. To ten, którego używa Docker MCP
+      # Gateway, więc nie może zmienić transportu bez świadomej decyzji.
+      - name: Build and push (stdio)
+        uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.stdio
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Obraz HTTP -> osobne tagi z sufiksem -http, dla agentów po sieci.
+      - name: Build and push (http)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.metaHttp.outputs.tags }}
+          labels: ${{ steps.metaHttp.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

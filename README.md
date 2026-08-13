@@ -30,9 +30,24 @@ npm run build
 npm start            # stdio MCP server
 ```
 
+### HTTP (obraz publikowany pod tagiem -http)
+
+```bash
+npm run build
+npm run start:http          # nasłuchuje na PORT (domyślnie 3000)
+
+curl http://localhost:3000/health
+```
+
+Endpointy: `POST /mcp` (Streamable HTTP), `GET /health` (probes).
+Obraz `:latest` uruchamia transport stdio (Docker MCP Gateway).
+Wariant HTTP publikowany jest pod tagiem `:latest-http` — używa go agent
+łączący się po sieci. Lokalnie: `docker build -f Dockerfile -t caselaw-http .`
+
 ## Install
 
-The server speaks MCP over stdio. Pick whichever setup matches your client.
+This section covers stdio clients (see `## Run` above for the HTTP variant).
+Pick whichever setup matches your client.
 
 ### Docker MCP Gateway
 
@@ -47,7 +62,7 @@ To run your own build instead, set `image:` in that file to a local tag and
 build it first:
 
 ```bash
-docker build -t polish-caselaw-mcp:local .
+docker build -f Dockerfile.stdio -t polish-caselaw-mcp:local .
 ```
 
 The gateway's `--block-network` flag cuts SAOS off; tools then return a clear
