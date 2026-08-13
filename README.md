@@ -30,6 +30,19 @@ npm run build
 npm start            # stdio MCP server
 ```
 
+### HTTP (domyślny transport w obrazie Dockera)
+
+```bash
+npm run build
+npm run start:http          # nasłuchuje na PORT (domyślnie 3000)
+
+curl http://localhost:3000/health
+```
+
+Endpointy: `POST /mcp` (Streamable HTTP), `GET /health` (probes).
+Obraz Dockera uruchamia ten transport. Dla stdio użyj `Dockerfile.stdio`
+albo nadpisz komendę: `docker run ... node dist/index.js`.
+
 ## Install
 
 The server speaks MCP over stdio. Pick whichever setup matches your client.

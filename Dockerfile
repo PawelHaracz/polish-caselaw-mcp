@@ -23,4 +23,9 @@ RUN addgroup -S nodejs && adduser -S nodejs -G nodejs && chown -R nodejs:nodejs 
 USER nodejs
 
 ENV NODE_ENV=production
-CMD ["node", "dist/index.js"]
+
+# HTTP jest transportem domyślnym — agent łączy się po sieci, a Container Apps
+# sprawdza /health. Dla stdio (Docker MCP Gateway) użyj Dockerfile.stdio albo
+# nadpisz: docker run ... node dist/index.js
+EXPOSE 3000
+CMD ["node", "dist/http-server.js"]
