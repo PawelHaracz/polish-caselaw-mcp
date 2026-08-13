@@ -17,6 +17,7 @@
     "build": "tsc",
     "dev": "node --import tsx src/index.ts",
     "start": "node dist/index.js",
+    "start:http": "node dist/http-server.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
