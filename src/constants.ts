@@ -6,17 +6,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Wersja z package.json, nie z literału — literał rozjeżdża się przy bumpie,
 // a caselaw_about raportuje ją użytkownikowi jako wersję serwera.
-// Dwa warianty ścieżki: z dist/src/ (produkcja) i z src/ (dev przez tsx).
+// Jedna ścieżka wystarcza: tsconfig ma outDir "dist" i include ["src"], więc
+// dist/ jest płaski — constants.js leży tam tak samo głęboko jak constants.ts
+// w src/, czyli o jeden poziom od package.json w obu wariantach uruchomienia.
 const pkg = JSON.parse(
-  readFileSync(
-    [
-      join(__dirname, '..', 'package.json'),
-      join(__dirname, '..', '..', 'package.json'),
-    ].find((p) => {
-      try { readFileSync(p); return true; } catch { return false; }
-    }) ?? join(__dirname, '..', 'package.json'),
-    'utf-8',
-  ),
+  readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'),
 );
 
 export const SERVER_NAME: string = pkg.name.replace(/^@[^/]+\//, '');
