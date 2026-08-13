@@ -1,4 +1,6 @@
-# HTTP image for agents connecting over the network. Lightweight, no database.
+# Obraz stdio dla Docker MCP Gateway — to on jest publikowany jako :latest.
+# Wariant HTTP (dla agentów łączących się po sieci) buduje Dockerfile
+# i publikuje pod tagiem -http.
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
@@ -23,9 +25,4 @@ RUN addgroup -S nodejs && adduser -S nodejs -G nodejs && chown -R nodejs:nodejs 
 USER nodejs
 
 ENV NODE_ENV=production
-
-# HTTP jest transportem dla agentów łączących się po sieci; Container Apps
-# sprawdza /health. Publikowany pod tagiem -http.
-# Dla Docker MCP Gateway (stdio) służy Dockerfile.stdio, publikowany jako :latest.
-EXPOSE 3000
-CMD ["node", "dist/http-server.js"]
+CMD ["node", "dist/index.js"]

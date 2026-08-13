@@ -40,8 +40,9 @@ curl http://localhost:3000/health
 ```
 
 Endpointy: `POST /mcp` (Streamable HTTP), `GET /health` (probes).
-Obraz Dockera uruchamia ten transport. Dla stdio użyj `Dockerfile.stdio`
-albo nadpisz komendę: `docker run ... node dist/index.js`.
+Obraz `:latest` uruchamia transport stdio (Docker MCP Gateway).
+Wariant HTTP publikowany jest pod tagiem `:latest-http` — używa go agent
+łączący się po sieci. Lokalnie: `docker build -f Dockerfile -t caselaw-http .`
 
 ## Install
 
