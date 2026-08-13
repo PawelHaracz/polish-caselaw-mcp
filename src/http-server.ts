@@ -29,7 +29,7 @@ import { SERVER_NAME, SERVER_VERSION } from './constants.js';
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const STARTED_AT = Date.now();
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /** Odrzuca nagłówki sesji, które nie są UUID — nie ufamy wejściu z sieci. */
 function validSessionId(raw: string | undefined): string | undefined {
@@ -37,7 +37,14 @@ function validSessionId(raw: string | undefined): string | undefined {
   return raw;
 }
 
+// Sesje bez TTL zostawałyby w pamięci po kliencie, który zniknął bez DELETE
+// (ubity proces, padnięta sieć) — onclose odpala tylko wtedy, gdy transport
+// wykryje zamknięcie. Stąd stempel ostatniego użycia i okresowe sprzątanie.
+const SESSION_IDLE_MS = 30 * 60 * 1000;
+const SESSION_SWEEP_MS = 5 * 60 * 1000;
+
 const sessions = new Map<string, StreamableHTTPServerTransport>();
+const sessionLastSeen = new Map<string, number>();
 
 async function main(): Promise<void> {
   /** Świeża instancja serwera MCP na każdą sesję. */
@@ -81,6 +88,7 @@ async function main(): Promise<void> {
 
         // Istniejąca sesja — oddaj transportowi
         if (sessionId && sessions.has(sessionId)) {
+          sessionLastSeen.set(sessionId, Date.now());
           await sessions.get(sessionId)!.handleRequest(req, res);
           return;
         }
@@ -102,13 +110,24 @@ async function main(): Promise<void> {
           });
 
           sessions.set(newSessionId, transport);
+          sessionLastSeen.set(newSessionId, Date.now());
           transport.onclose = () => {
             sessions.delete(newSessionId);
+            sessionLastSeen.delete(newSessionId);
           };
 
-          const server = createMCPServer();
-          await server.connect(transport);
-          await transport.handleRequest(req, res);
+          try {
+            const server = createMCPServer();
+            await server.connect(transport);
+            await transport.handleRequest(req, res);
+          } catch (error) {
+            // Inicjalizacja padła, więc onclose nigdy nie odpali — wpis
+            // zostałby w mapie na zawsze. Sprzątamy sami i oddajemy błąd
+            // zewnętrznemu handlerowi.
+            sessions.delete(newSessionId);
+            sessionLastSeen.delete(newSessionId);
+            throw error;
+          }
           return;
         }
 
@@ -143,10 +162,25 @@ async function main(): Promise<void> {
     console.error(`${SERVER_NAME} v${SERVER_VERSION} HTTP server listening on port ${PORT}`);
   });
 
+  const sweeper = setInterval(() => {
+    const cutoff = Date.now() - SESSION_IDLE_MS;
+    for (const [id, lastSeen] of sessionLastSeen) {
+      if (lastSeen < cutoff) {
+        sessions.get(id)?.close().catch(() => {});
+        sessions.delete(id);
+        sessionLastSeen.delete(id);
+      }
+    }
+  }, SESSION_SWEEP_MS);
+  // Nie trzymaj procesu przy życiu samym sprzątaczem.
+  sweeper.unref();
+
   const shutdown = (signal: string) => {
     console.error(`[${SERVER_NAME}] Shutting down (${signal})...`);
+    clearInterval(sweeper);
     for (const [, t] of sessions) t.close().catch(() => {});
     sessions.clear();
+    sessionLastSeen.clear();
     httpServer.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 5000);
   };
