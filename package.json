@@ -1,6 +1,6 @@
 {
   "name": "polish-caselaw-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "mcpName": "io.github.pawelharacz/polish-caselaw-mcp",
   "description": "Polish court case law via MCP — live search and retrieval of judgments from the SAOS API (saos.org.pl)",
   "author": "Pawel Haracz <14162492+PawelHaracz@users.noreply.github.com>",
