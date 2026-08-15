@@ -1,7 +1,17 @@
 import { SAOS_BASE_URL, HTTP_TIMEOUT_MS, RETRY_BACKOFF_MS } from '../constants.js';
 import type { SaosSearchResponse, SaosJudgmentResponse } from './types.js';
 
-export type SaosErrorCode = 'timeout' | 'network' | 'http' | 'notfound' | 'ratelimited';
+export type SaosErrorCode =
+  | 'timeout'
+  | 'network'
+  | 'http'
+  | 'notfound'
+  | 'ratelimited'
+  // SAOS serwuje stronę "Przerwa techniczna" z kodem 200 i typem text/html.
+  // Bez tego kodu res.ok przechodzi, a res.json() rzuca SyntaxError, który
+  // nie jest SaosError — więc omija mapowanie komunikatów i agent dostaje
+  // surowy tekst parsera zamiast informacji, że źródło jest niedostępne.
+  | 'maintenance';
 
 export class SaosError extends Error {
   code: SaosErrorCode;
@@ -70,7 +80,29 @@ async function fetchJson<T>(path: string, fetchFn: FetchFn): Promise<T> {
   if (res.status === 429) throw new SaosError('ratelimited', `SAOS rate-limited: ${url}`, 429);
   if (!res.ok) throw new SaosError('http', `SAOS HTTP ${res.status}: ${url}`, res.status);
 
-  return (await res.json()) as T;
+  // Odpowiedź 200 nie gwarantuje JSON-a: podczas przerwy technicznej SAOS
+  // zwraca stronę HTML z kodem 200. Sprawdzamy typ zawartości ZANIM
+  // spróbujemy sparsować, żeby błąd był czytelny i miał właściwy kod.
+  const contentType = res.headers.get('content-type') ?? '';
+  if (!contentType.includes('json')) {
+    const body = await res.text();
+    const maintenance = /przerwa techniczna|maintenance/i.test(body);
+    throw new SaosError(
+      maintenance ? 'maintenance' : 'http',
+      maintenance
+        ? `SAOS maintenance page returned for ${url}`
+        : `SAOS returned ${contentType || 'unknown content type'} instead of JSON: ${url}`,
+      res.status,
+    );
+  }
+
+  try {
+    return (await res.json()) as T;
+  } catch {
+    // Poprawny nagłówek, zepsute ciało — traktujemy jak awarię źródła,
+    // nie jak błąd naszego kodu.
+    throw new SaosError('http', `SAOS returned malformed JSON: ${url}`, res.status);
+  }
 }
 
 export function searchJudgments(
