@@ -125,6 +125,10 @@ export function errorMessage(err: unknown): string {
         case 'timeout': return 'SAOS timed out. Try again.';
         case 'network': return 'SAOS unavailable (network error). The gateway may have network access disabled.';
         case 'ratelimited': return 'SAOS is rate-limited. Try again shortly.';
+        case 'maintenance':
+          // Ponawianie nie ma sensu: przerwa techniczna trwa godzinami, nie
+          // sekundami. Agent ma to zgłosić użytkownikowi, nie próbować dalej.
+          return 'SAOS is down for scheduled maintenance. Case law is unavailable right now — say so instead of retrying.';
         case 'notfound': return 'Not found.';
         default: return `SAOS error (HTTP ${err.status ?? '?'}).`;
       }
